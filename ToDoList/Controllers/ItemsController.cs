@@ -5,22 +5,32 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using Microsoft.AspNetCore.Authorization;  //"Allows us to actually authorize users" (Lsn 9).
+using Microsoft.AspNetCore.Identity;  //"[Allows] our controller [to] interact with users from the database" (Lsn 9). 
+using System.Threading.Tasks;  //"[Is] necessary to call async methods" (Lsn 9). 
+using System.Security.Claims;  /* "[I]mportant for using claim based authorization. A claim is a form of user identification. It states who a user is, not what the user can actually do. While the user identification itself doesn't authorize a user to do anything, it is necessary to first identify a user (through a claim) in order to determine whether they should be authorized" (Lsn 9). */
 
 namespace ToDoList.Controllers
 {
+  [Authorize]  //This attribute "allows access to the 'ItemsController' only if a user is logged in" (Lsn 9). 
   public class ItemsController : Controller
   {
     private readonly ToDoListContext _db;
+    private readonly UserManager<ApplicationUser> _userManager;  //new line 
 
-    public ItemsController(ToDoListContext db)
+    //updated constructor
+    public ItemsController(UserManager<ApplicationUser> userManager, ToDoListContext db)
     {
+      _userManager = userManager;
       _db = db;
     }
 
-    public ActionResult Index()
+    public async Task<ActionResult> Index()
     {
-      List<Item> sortedItems = _db.Items.OrderBy(item => item.DueDate).ToList();
-      return View(sortedItems);
+      var userId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+      var currentUser = await _userManager.FindByIdAsync(userId);
+      var userItems = _db.Items.Where(entry => entry.User.Id == currentUser.Id).ToList();
+      return View(userItems);
     }
 
     public ActionResult Create()
@@ -30,15 +40,18 @@ namespace ToDoList.Controllers
     }
 
     [HttpPost]
-    public ActionResult Create(Item item, int CategoryId, bool Completed, DateTime DueDate)
+    public async Task<ActionResult> Create(Item item, int CategoryId)
     {
+      var userId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+      var currentUser = await _userManager.FindByIdAsync(userId);
+      item.User = currentUser;
       _db.Items.Add(item);
       _db.SaveChanges();
       if (CategoryId != 0)
       {
         _db.CategoryItem.Add(new CategoryItem() { CategoryId = CategoryId, ItemId = item.ItemId });
-        _db.SaveChanges();
       }
+      _db.SaveChanges();
       return RedirectToAction("Index");
     }
 
