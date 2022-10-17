@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>My To-Do List!</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+@{
+  Layout = "_Layout";
+}
 
-    @{
-      Layout = "_Layout";
-    }
-  </head>
-  <body>
-    <h1>Welcome to the To Do List!</h1>
-    <p>@Html.ActionLink("See all categories", "Index", "Categories")</p>
-    <p>@Html.ActionLink("See all items", "Index", "Items")</p>
-  </body>
-</html>
+<h1>Welcome to the To Do List!</h1>
+@* <hr /> *@
+
+<p>@Html.ActionLink("See all categories", "Index", "Categories")</p>
+<p>@Html.ActionLink("See all items", "Index", "Items")</p>
+<p>@Html.ActionLink("Create an account", "Index", "Account")</p>
