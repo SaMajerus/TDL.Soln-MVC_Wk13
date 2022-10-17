@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using ToDoList.Models;
+//New code:  [Ln 9]
+using Microsoft.AspNetCore.Identity;  
 
 namespace ToDoList
 {
@@ -18,7 +20,7 @@ namespace ToDoList
       Configuration = builder.Build();
     }
 
-    public IConfigurationRoot Configuration { get; }
+    public IConfigurationRoot Configuration { get; set; }
 
     public void ConfigureServices(IServiceCollection services)
     {
@@ -27,18 +29,29 @@ namespace ToDoList
       services.AddEntityFrameworkMySql()
         .AddDbContext<ToDoListContext>(options => options
         .UseMySql(Configuration["ConnectionStrings:DefaultConnection"], ServerVersion.AutoDetect(Configuration["ConnectionStrings:DefaultConnection"])));
+
+      //New code
+      services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ToDoListContext>()
+                .AddDefaultTokenProviders();
     }
 
     public void Configure(IApplicationBuilder app)
     {
       app.UseDeveloperExceptionPage();
-      app.UseRouting();
-      app.UseStaticFiles();
 
+      app.UseAuthentication(); //new code  [this line]
+
+      app.UseRouting();
+      
+      app.UseAuthorization(); //new code  [this line]
+      
       app.UseEndpoints(routes =>
       {
         routes.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
       });
+
+      app.UseStaticFiles();
 
       app.Run(async (context) =>
       {
